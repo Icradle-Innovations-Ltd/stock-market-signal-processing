@@ -43,7 +43,7 @@ stock-market-signal-processing/
 
 1. Clone the repository:
    ```
-   git clone https://github.com/your-username/stock-market-signal-processing.git
+   git clone https://github.com/Icradle-Innovations-Ltd/stock-market-signal-processing.git
    cd stock-market-signal-processing
    ```
 
