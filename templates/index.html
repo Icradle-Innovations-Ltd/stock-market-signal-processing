@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Market Signal Processing</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Stock Market Signal Processing</h1>
+            <p class="subtitle">Analyze cyclical patterns in stock price data using Fourier Transforms</p>
+        </header>
+
+        <section class="main-content">
+            <div class="upload-container">
+                <h2>Upload Stock Data</h2>
+                
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <div class="alert">
+                            {% for message in messages %}
+                                <p>{{ message }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+                
+                <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" id="upload-form">
+                    <div class="file-input-container">
+                        <input type="file" name="file" id="file" accept=".csv" required>
+                        <label for="file">
+                            <div class="file-input-button">
+                                <span class="file-icon">📁</span>
+                                <span class="file-text">Choose CSV File</span>
+                            </div>
+                            <div class="file-name" id="file-name">No file selected</div>
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="submit-button">Analyze Data</button>
+                </form>
+            </div>
+
+            <div class="instructions">
+                <h2>Instructions</h2>
+                <p>Upload a CSV file containing stock price data with the following columns:</p>
+                <ul>
+                    <li><strong>date</strong>: Date in YYYY-MM-DD format</li>
+                    <li><strong>price</strong>: Stock price (numeric value)</li>
+                </ul>
+                <p>The application will analyze the data using Fast Fourier Transform (FFT) to identify cyclical patterns.</p>
+            </div>
+
+            <div class="examples">
+                <h2>Example Datasets</h2>
+                <div id="example-list">
+                    <p>Loading example datasets...</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="educational">
+            <h2>About Signal Processing in Finance</h2>
+            <div class="info-box">
+                <h3>What is Fourier Transform?</h3>
+                <p>The Fourier Transform is a mathematical technique that decomposes a signal into its constituent frequencies. In finance, it helps identify cyclical patterns in price movements.</p>
+            </div>
+            
+            <div class="info-box">
+                <h3>Understanding Power Spectra</h3>
+                <p>The power spectrum shows the strength of different frequency components in the data. Peaks in the spectrum indicate dominant cycles in the stock price.</p>
+            </div>
+            
+            <div class="info-box">
+                <h3>Applications in Trading</h3>
+                <p>Identifying market cycles can help with market timing, trading strategies, and understanding long-term market behavior.</p>
+            </div>
+        </section>
+
+        <footer>
+            <p>Stock Market Signal Processing Web App &copy; 2025</p>
+            <p>Developed by The Bazaar Team</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

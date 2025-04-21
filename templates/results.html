@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Results - Stock Market Signal Processing</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Stock Market Signal Processing</h1>
+            <p class="subtitle">Analysis Results</p>
+        </header>
+
+        <div class="back-link">
+
+            <a href="{{ url_for('index') }}">← Back to Upload</a>
+        </div>
+
+        <div id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing data, please wait...</p>
+        </div>
+
+        <section class="results-container" id="results-container" style="display: none;">
+            <div class="combined-plot-container">
+                <h2>Combined Visualization</h2>
+                <div id="combined-plot" class="plot"></div>
+            </div>
+
+            <div class="plot-grid">
+                <div class="plot-container">
+                    <h2>Time Series</h2>
+                    <div id="time-series-plot" class="plot"></div>
+                </div>
+
+                <div class="plot-container">
+                    <h2>Power Spectrum</h2>
+                    <div id="power-spectrum-plot" class="plot"></div>
+                </div>
+            </div>
+
+            <div class="cycles-container">
+                <h2>Dominant Cycles</h2>
+                <p>The analysis identified the following dominant cycles in the stock price data:</p>
+                <div id="cycles-list"></div>
+            </div>
+
+            <div class="interpretation">
+                <h2>Interpretation Guide</h2>
+                <div class="info-box">
+                    <h3>Time Series</h3>
+                    <p>The time series plot shows the historical stock prices over time. Look for visual patterns that might indicate cyclical behavior.</p>
+                </div>
+                
+                <div class="info-box">
+                    <h3>Power Spectrum</h3>
+                    <p>The power spectrum plot shows the strength of different cycles in the data. Peaks indicate dominant cycles - the higher the peak, the stronger the cycle.</p>
+                </div>
+                
+                <div class="info-box">
+                    <h3>Dominant Cycles</h3>
+                    <p>These are the most significant cyclical patterns detected in your data. The period represents the length of the cycle, and the power indicates its strength.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="error-container" id="error-container" style="display: none;">
+            <div class="alert error">
+                <h2>Error</h2>
+                <p id="error-message"></p>
+            </div>
+        </section>
+
+        <footer>
+
+            <p>Stock Market Signal Processing Web App © 2025</p>
+            <p>Developed by The Bazaar Team</p>
+        </footer>
+    </div>
+
+    <script>
+        // Store filename for cleanup
+        const filename = "{{ filename }}";
+        
+        // Fetch and display analysis results
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch(`/api/analyze/${filename}`)
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(data.error || 'Error analyzing data');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Hide loading indicator
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    // Show results container
+                    document.getElementById('results-container').style.display = 'block';
+                    
+                    // Parse and display plots
+                    const timeSeries = JSON.parse(data.time_series_plot);
+                    const powerSpectrum = JSON.parse(data.power_spectrum_plot);
+                    const combinedPlot = JSON.parse(data.combined_plot);
+                    
+                    Plotly.newPlot('time-series-plot', timeSeries.data, timeSeries.layout);
+                    Plotly.newPlot('power-spectrum-plot', powerSpectrum.data, powerSpectrum.layout);
+                    Plotly.newPlot('combined-plot', combinedPlot.data, combinedPlot.layout);
+                    
+                    // Display dominant cycles
+                    const cyclesList = document.getElementById('cycles-list');
+                    if (data.dominant_cycles && data.dominant_cycles.length > 0) {
+                        const cyclesTable = document.createElement('table');
+                        cyclesTable.className = 'cycles-table';
+                        
+                        // Create table header
+                        const tableHeader = document.createElement('thead');
+                        const headerRow = document.createElement('tr');
+                        const rankHeader = document.createElement('th');
+                        rankHeader.textContent = 'Rank';
+                        const periodHeader = document.createElement('th');
+                        periodHeader.textContent = 'Period';
+                        const strengthHeader = document.createElement('th');
+                        strengthHeader.textContent = 'Relative Strength';
+                        headerRow.appendChild(rankHeader);
+                        headerRow.appendChild(periodHeader);
+                        headerRow.appendChild(strengthHeader);
+                        tableHeader.appendChild(headerRow);
+                        headerRow.appendChild(rankHeader);
+                        headerRow.appendChild(periodHeader);
+                        headerRow.appendChild(strengthHeader);
+                        tableHeader.appendChild(headerRow);
+                        cyclesTable.appendChild(tableHeader);
+                        
+                        // Create table body
+                        const tableBody = document.createElement('tbody');
+                        data.dominant_cycles.forEach((cycle, index) => {
+                            const row = document.createElement('tr');
+                            
+                            const rankCell = document.createElement('td');
+                            rankCell.textContent = index + 1;
+                            
+                            const periodCell = document.createElement('td');
+                            periodCell.textContent = cycle.period;
+                            
+                            const strengthCell = document.createElement('td');
+                            strengthCell.textContent = cycle.power;
+                            
+                            row.appendChild(rankCell);
+                            row.appendChild(periodCell);
+                            row.appendChild(strengthCell);
+                            tableBody.appendChild(row);
+                        });
+                        
+                        cyclesTable.appendChild(tableBody);
+                        cyclesList.appendChild(cyclesTable);
+                    } else {
+                        const noCyclesMsg = document.createElement('p');
+                        noCyclesMsg.textContent = 'No significant cycles detected in the data.';
+                        cyclesList.appendChild(noCyclesMsg);
+                    }
+                })
+                .catch(error => {
+                    // Hide loading indicator
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    // Show error container
+                    document.getElementById('error-container').style.display = 'block';
+                    document.getElementById('error-message').textContent = error.message;
+                })
+                .finally(() => {
+                    // Register window unload event for cleanup
+                    window.addEventListener('beforeunload', function() {
+                        // Attempt to clean up the uploaded file when leaving the page
+                        navigator.sendBeacon('/cleanup', JSON.stringify({ filename }));
+                    });
+                });
+        });
+    </script>
+</body>
+</body>
+    </html>
